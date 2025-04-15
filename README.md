@@ -7,14 +7,6 @@ A small program for converting album cover art to folder icons. Now when you ope
 Make sure you have [.NET Runtime 8](https://dotnet.microsoft.com/download/dotnet/8.0) installed. 
 After that, it's very simple to use; just drag your album folders into the executable and it <sub>(should)</sub> work.
 
-Importantly, this program assumes your albums have a `cover.jpg`/`cover.png`/etc. file in the root or any of the subfolders; if not, you can use a tag editor to extract the artwork.
+This program assumes your albums have either a `cover.jpg`/`cover.png`/etc. file in the root or any of the subfolders; if that doesn't exist, it will try to extract the cover from the first audio file with one.
 
-> [!NOTE]
-> Windows is a bit weird when it comes to programatically modifying icons. If you simply pass your albums through covericonator, you might notice it didn't work as expected. The solution I've found to fix broken icons, albeit not perfect, is:
->
-> 1. Open the folder properties
-> 2. Navigate to the Customize tab
-> 3. ...Do nothing, and just click OK
-> 4. Exit and re-enter the parent folder
->
-> If you know of a way to solve this problem, please let me know.
+Once you apply the cover to your folder, you might need to refresh the Explorer window for it to display properly.
