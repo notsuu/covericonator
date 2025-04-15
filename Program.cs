@@ -41,7 +41,7 @@ namespace covericonator
                     cchIconFile = 0,
                     iIconIndex = 0,
                 };
-                uint ret = Extern.SHGetSetFolderCustomSettings(ref settings, path + "aa", 0x02); // FCS_FORCEWRITE
+                uint ret = Extern.SHGetSetFolderCustomSettings(ref settings, path, 0x02); // FCS_FORCEWRITE
                 if (ret != 0)
                     throw new Exception(
                         Marshal.GetExceptionForHR((int)ret)?.Message 
