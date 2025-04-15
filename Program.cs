@@ -1,54 +1,29 @@
 ﻿using System.Drawing;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 
 namespace covericonator
 {
+    using MetadataQuery = (Image?, string);
+
     internal class Program
     {
-        [DllImport("kernel32", CharSet = CharSet.Unicode)]
-        static extern bool WritePrivateProfileString(string Section, string Key, string Value, string FilePath);
-
-        static string? RecursiveSearch(string path, string pattern)
-        {
-            if (!Directory.Exists(path))
-            {
-                if (File.Exists(path))
-                    throw new ArgumentException("Directory needed but a file was passed.");
-                throw new DirectoryNotFoundException();
-            }
-
-            string? found = null;
-            foreach (string file in Directory.EnumerateFiles(path))
-            {
-                if (!Regex.IsMatch(file, pattern)) continue;
-                found = file;
-                break;
-            }
-            if (found != null) return found;
-
-            foreach (string dir in Directory.EnumerateDirectories(path))
-            {
-                string? search = RecursiveSearch(dir, pattern);
-                if (search == null) continue;
-                found = search;
-                break;
-            }
-
-            return found;
-        }
-
         static void Process(string path)
         {
             try
             {
                 Console.WriteLine($"Processing: {path}");
-                string? cover = RecursiveSearch(path, @"(C|c)over\.(jpe?g|png)");
+                string? cover = Cover.QueryFiles(path, @"(C|c)over\.(jpe?g|png)");
+                Image src;
                 if (cover == null)
-                    throw new FileNotFoundException("Could not find a cover image.");
+                {
+                    Console.WriteLine("Cannot find cover image, searching in audio metadata...");
+                    MetadataQuery query = Cover.QueryMetadata(path, @"\.(flac|mp3|m4a|aac|oga|ogg|opus)$");
+                    if (query.Item1 == null) throw new FileNotFoundException("Could not find a cover image.");
+                    src = query.Item1;
+                    cover = query.Item2;
+                } else { src = Image.FromFile(cover); }
                 Console.WriteLine($"Cover found at: {cover}");
-
-                Image src = Image.FromFile(cover);
                 Console.WriteLine("Converting to icon...");
                 Bitmap img = new Bitmap(src, 256, 256);
                 Icon icon = IconConvert.IconFromImage(img);
@@ -58,16 +33,20 @@ namespace covericonator
                 IconConvert.WriteFile(icon, icoPath);
 
                 Console.WriteLine("Updating directory...");
-                string confPath = path + "\\desktop.ini";
-                bool ret = WritePrivateProfileString(".ShellClassInfo", "IconResource", icoPath + ",0", confPath);
-                if (!ret)
-                    throw new Exception($"desktop.ini write failed.");
-
-                // TODO: something regarding icon caching?
-                // right now, upon assigning the IconResource windows will display a
-                // broken version of the icon, and you need to open folder properties,
-                // go to the icon tab, and click OK. Yes, you did nothing, but you did
-                // something, and now your icon works properly. What a great OS!
+                Extern.LPSHFOLDERCUSTOMSETTINGS settings = new()
+                {
+                    dwSize = (uint)Unsafe.SizeOf<Extern.LPSHFOLDERCUSTOMSETTINGS>(),
+                    dwMask = 0x10, // FCSM_ICONFILE
+                    pszIconFile = icoPath,
+                    cchIconFile = 0,
+                    iIconIndex = 0,
+                };
+                uint ret = Extern.SHGetSetFolderCustomSettings(ref settings, path + "aa", 0x02); // FCS_FORCEWRITE
+                if (ret != 0)
+                    throw new Exception(
+                        Marshal.GetExceptionForHR((int)ret)?.Message 
+                        ?? string.Format("0x{0:X8}", ret)
+                    );
                 Console.WriteLine("Success!");
             } catch (Exception e)
             {

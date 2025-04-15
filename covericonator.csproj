@@ -9,10 +9,14 @@
     <Authors>notsu</Authors>
     <Platforms>AnyCPU</Platforms>
     <PlatformTarget>AnyCPU</PlatformTarget>
+	<Version>1.1.0</Version>
+    <FileVersion>$(Version)</FileVersion>
+    <AssemblyVersion>$(Version)</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="System.Drawing.Common" Version="9.0.1" />
+    <PackageReference Include="z440.atl.core" Version="6.20.0" />
   </ItemGroup>
 
 </Project>
