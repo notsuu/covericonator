@@ -12,6 +12,7 @@ namespace covericonator
         {
             try
             {
+                path = Path.GetFullPath(path);
                 Console.WriteLine($"Processing: {path}");
                 string? cover = Cover.QueryFiles(path, @"(C|c)over\.(jpe?g|png)");
                 Image src;

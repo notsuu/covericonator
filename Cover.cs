@@ -1,7 +1,6 @@
 ﻿using System.Drawing;
 using System.Text.RegularExpressions;
 using ATL;
-using ATL.AudioData;
 
 namespace covericonator
 {
